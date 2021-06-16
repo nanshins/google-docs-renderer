@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+    </head>
+    <body>
+        <% for (const file of files) { %>
+        <a href="/ejs/<%= file.id %>">ejs: <%= file.name %></a>
+        <a href="/react/<%= file.id %>">react: <% file.name %></a>
+        <% }; %> 
+    </body>
+</html>

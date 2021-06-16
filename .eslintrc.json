@@ -1,0 +1,63 @@
+{
+    "root": true,
+    "extends": [
+        "eslint:recommended",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "plugin:import/typescript",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:prettier/recommended"
+    ],
+    "plugins": ["@typescript-eslint", "import"],
+    "parser": "@typescript-eslint/parser",
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es6": true,
+        "node": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "rules": {
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/ban-types": "off",
+        "import/first": "warn",
+        "import/no-duplicates": "warn",
+        "import/order": "warn",
+        "import/no-named-as-default": "off",
+        "import/no-unresolved": "off"
+    },
+    "overrides": [
+        {
+            "files": ["test/**/*.test.js", "test/**/*.test.ts"],
+            "extends": ["plugin:jest/recommended"],
+            "rules": {
+                "jest/expect-expect": "off",
+                "jest/no-disabled-tests": "off",
+                "jest/no-conditional-expect": "off",
+                "jest/valid-title": "off",
+                "jest/no-interpolation-in-snapshots": "off"
+            }
+        },
+        {
+            "files": ["*.js"],
+            "rules": {
+                "@typescript-eslint/no-var-requires": "off"
+            }
+        }
+    ]
+}
