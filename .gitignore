@@ -1,5 +1,6 @@
 node_modules
 
 examples/**/dist
+examples/index.js
 
 .env
