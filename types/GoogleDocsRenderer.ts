@@ -36,14 +36,6 @@ export type ParsedStructuralElement = {
         | docs_v1.Schema$TableOfContents;
 };
 
-export type ParseStructuralElement = (
-    element: docs_v1.Schema$StructuralElement
-) => ParsedStructuralElement | null;
-
-export type StructuralElementFilter = (
-    elements: docs_v1.Schema$StructuralElement[]
-) => ParsedStructuralElement[];
-
 // parse paragraph elements
 export type ParsedList = {
     key: string;
@@ -58,33 +50,14 @@ export type ParsedParagraphElement = {
 
 export type ParsedListElement = {
     type: LIST_ELEMENT_TYPES;
+    listKey: string;
     id: string;
-    elements: ParsedParagraphElement[];
+    elements: (ParsedParagraphElement | ParsedListElement)[];
 };
 
 export type ParsedParagraphs = (ParsedParagraphElement | ParsedListElement)[];
 
-export type ParagraphFilter = (
-    lists: {
-        [key: string]: docs_v1.Schema$List;
-    },
-    elements: ParsedStructuralElement[]
-) => ParsedParagraphs;
-
 // object mapping
-export type ObjectMappingFilterArgs = {
-    elements: ParsedParagraphs;
-    inlineObjects: {
-        [key: string]: docs_v1.Schema$InlineObject;
-    };
-};
-
-export type GdrDocument = (ListElement | ParagraphElement)[];
-
-export type ObjectMappingFilter = (
-    args: ObjectMappingFilterArgs
-) => GdrDocument;
-
 export type ListElement = {
     type: LIST_ELEMENT_TYPES;
     id: string;
@@ -136,10 +109,6 @@ export type ObjectProperties = {
     cropOffsetRight?: number;
 };
 
-export type ParseRgbColor = (rgbColor: docs_v1.Schema$RgbColor) => string;
-
-export type ParseTextStyle = (style: docs_v1.Schema$TextStyle) => TextStyleMap;
-
 export type TextStyleMap = {
     backgroundColor?: string;
     foregroundColor?: string;
@@ -148,3 +117,5 @@ export type TextStyleMap = {
     strikethrough?: boolean;
     underline?: boolean;
 };
+
+export type GdrDocument = (ListElement | ParagraphElement)[];
