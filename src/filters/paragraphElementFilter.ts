@@ -2,58 +2,67 @@ import { docs_v1 } from "googleapis";
 import { v4 } from "uuid";
 import {
     LIST_ELEMENT_TYPES,
-    ParagraphFilter,
     PARAGRAPH_ELEMENT_TYPES,
     ParsedListElement,
-    ParsedParagraphElement
+    ParsedParagraphElement,
+    ParsedParagraphs,
+    ParsedStructuralElement
 } from "../../types/GoogleDocsRenderer";
 
-export const paragraphFilter: ParagraphFilter = (lists, elements) => {
+export function paragraphFilter(
+    lists: {
+        [key: string]: docs_v1.Schema$List;
+    },
+    elements: ParsedStructuralElement[]
+): ParsedParagraphs {
     const listKeys = new Set<string>();
     const listElements: ParsedListElement[] = [];
     const parsedParagraphs = elements.map((paragraph) => {
         if (paragraph.type === "PARAGRAPH") {
             const element = paragraph.element as docs_v1.Schema$Paragraph;
-            // list
             if (element.bullet && element.bullet.listId) {
+                // list
+                // リストIDが既出か否かの判定
                 const listKey = element.bullet.listId;
+                const listProperties = lists[listKey].listProperties;
+                const nestingLevel = element.bullet.nestingLevel || 0;
+                if (!listProperties || !listProperties.nestingLevels) {
+                    // not list properties
+                    return null;
+                }
                 if (listKeys.has(listKey)) {
-                    const listProperties = lists[listKey].listProperties;
-                    if (listProperties && listProperties.nestingLevels) {
-                        const parent = listElements.filter(
-                            (list) => list.id === listKey
-                        )[0];
-                        parent.elements.push({
-                            type: "LIST_CHILD",
-                            id: v4(),
-                            element: element
-                        });
-                    }
+                    // リストIDが既出の場合
+                    const parent = listElements.filter(
+                        (list) => list.listKey === listKey
+                    )[0];
+                    parent.elements.push({
+                        type: "LIST_CHILD",
+                        id: v4(),
+                        element: element
+                    });
                     return null;
                 } else {
-                    const listProperties = lists[listKey].listProperties;
-                    if (listProperties && listProperties.nestingLevels) {
-                        listKeys.add(listKey);
-                        const listType: LIST_ELEMENT_TYPES =
-                            listProperties?.nestingLevels[0].glyphType ===
-                            "DECIMAL"
-                                ? "ORDERED_LIST"
-                                : "UNORDERED_LIST";
-                        const listChildren: ParsedParagraphElement[] = [];
-                        const parsedElement: ParsedListElement = {
-                            type: listType,
-                            id: listKey,
-                            elements: listChildren
-                        };
-                        listElements.push(parsedElement);
-                        listChildren.push({
-                            type: "LIST_CHILD",
-                            id: v4(),
-                            element: element
-                        });
-                        return parsedElement;
-                    }
-                    return null;
+                    // リストIDが初出の場合
+                    listKeys.add(listKey);
+                    const listType: LIST_ELEMENT_TYPES =
+                        listProperties.nestingLevels[0].glyphType === "DECIMAL"
+                            ? "ORDERED_LIST"
+                            : "UNORDERED_LIST";
+                    const listChildren: ParsedParagraphElement[] = [];
+                    listChildren.push({
+                        type: "LIST_CHILD",
+                        id: v4(),
+                        element: element
+                    });
+                    const parsedElement: ParsedListElement = {
+                        type: listType,
+                        listKey: listKey,
+                        nestingLevel: nestingLevel,
+                        id: v4(),
+                        elements: listChildren
+                    };
+                    listElements.push(parsedElement);
+                    return parsedElement;
                 }
             } else {
                 // paragraph
@@ -121,5 +130,8 @@ export const paragraphFilter: ParagraphFilter = (lists, elements) => {
         }
         return null;
     });
-    return parsedParagraphs.filter(Boolean as any);
-};
+    const filteredParagraphs = parsedParagraphs.filter(
+        Boolean as any
+    ) as ParsedParagraphs;
+    return filteredParagraphs;
+}

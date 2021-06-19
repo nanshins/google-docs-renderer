@@ -37,10 +37,6 @@ export type ParsedStructuralElement = {
 };
 
 // parse paragraph elements
-export type ParsedList = {
-    key: string;
-    properties: docs_v1.Schema$ListProperties;
-};
 
 export type ParsedParagraphElement = {
     type: PARAGRAPH_ELEMENT_TYPES;
@@ -51,6 +47,7 @@ export type ParsedParagraphElement = {
 export type ParsedListElement = {
     type: LIST_ELEMENT_TYPES;
     listKey: string;
+    nestingLevel: number;
     id: string;
     elements: (ParsedParagraphElement | ParsedListElement)[];
 };

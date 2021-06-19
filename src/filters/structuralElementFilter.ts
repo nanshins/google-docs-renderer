@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type {
-    StructuralElementFilter,
-    ParseStructuralElement
-} from "../../types/GoogleDocsRenderer";
+import { docs_v1 } from "googleapis";
+import type { ParsedStructuralElement } from "../../types/GoogleDocsRenderer";
 
-const parseStructuralElementTypes: ParseStructuralElement = (element) => {
+function parseStructuralElementTypes(
+    element: docs_v1.Schema$StructuralElement
+): ParsedStructuralElement | null {
     try {
         if (element.paragraph) {
             return {
@@ -32,11 +32,13 @@ const parseStructuralElementTypes: ParseStructuralElement = (element) => {
         console.error(e);
         return null;
     }
-};
+}
 
-export const structuralElementFilter: StructuralElementFilter = (elements) => {
+export function structuralElementFilter(
+    elements: docs_v1.Schema$StructuralElement[]
+): ParsedStructuralElement[] {
     const parsedElements = elements.map((element) =>
         parseStructuralElementTypes(element)
     );
     return parsedElements.filter(Boolean as any);
-};
+}

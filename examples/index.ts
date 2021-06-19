@@ -36,6 +36,7 @@ function authorize() {
 const app = express();
 
 app.use("/", express.static(path.join(__dirname, "react")));
+app.use("/static", express.static(path.join(__dirname, "static")));
 app.set("view engine", "ejs");
 app.set("views", path.resolve(__dirname, "views"));
 
@@ -80,6 +81,7 @@ app.get("/ejs/:id", (req, res) => {
         version: "v1",
         auth: jwtCLient
     });
+
     docs.documents
         .get({
             documentId: req.params.id

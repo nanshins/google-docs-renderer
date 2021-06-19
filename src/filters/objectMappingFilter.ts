@@ -1,22 +1,22 @@
 import { docs_v1 } from "googleapis";
 import {
-    ObjectMappingFilter,
+    GdrDocument,
     ObjectProperties,
     ParagraphElement,
     ParsedListElement,
     ParsedParagraphElement,
-    ParseRgbColor,
-    ParseTextStyle,
-    TextElement
+    ParsedParagraphs,
+    TextElement,
+    TextStyleMap
 } from "../../types/GoogleDocsRenderer";
 
-const parseRgbColor: ParseRgbColor = (rgb) => {
+function parseRgbColor(rgb: docs_v1.Schema$RgbColor): string {
     return `rgb(${rgb.red ? rgb.red * 255 : "0"}, ${
         rgb.blue ? rgb.blue * 255 : "0"
     }, ${rgb.green ? rgb.green * 255 : "0"})`;
-};
+}
 
-const parseTextStyle: ParseTextStyle = (style: docs_v1.Schema$TextStyle) => {
+function parseTextStyle(style: docs_v1.Schema$TextStyle): TextStyleMap {
     return {
         bold: style.bold || undefined,
         italic: style.italic || undefined,
@@ -29,14 +29,14 @@ const parseTextStyle: ParseTextStyle = (style: docs_v1.Schema$TextStyle) => {
             ? parseRgbColor(style.foregroundColor.color.rgbColor)
             : undefined
     };
-};
+}
 
-const modifiedObject = (
+function modifiedObject(
     id: string,
     inlineObjects: {
         [key: string]: docs_v1.Schema$InlineObject;
     }
-): ObjectProperties | null => {
+): ObjectProperties | null {
     if (!inlineObjects[id]) {
         return null;
     }
@@ -129,14 +129,14 @@ const modifiedObject = (
         cropOffsetLeft,
         cropOffsetRight
     };
-};
+}
 
-const modifiedTextElement = (
+function modifiedTextElement(
     e: docs_v1.Schema$ParagraphElement,
     inlineObjects: {
         [key: string]: docs_v1.Schema$InlineObject;
     }
-): TextElement => {
+): TextElement {
     const hasLink = !!e.textRun?.textStyle?.link?.url;
     const hasObject = !!e.inlineObjectElement?.inlineObjectId;
     const hasHr = !!e.horizontalRule;
@@ -181,35 +181,41 @@ const modifiedTextElement = (
         hr: hasHr ? hr : undefined,
         object: hasObject ? object : undefined
     };
-};
+}
 
-export const objectMappingFilter: ObjectMappingFilter = ({
+export function objectMappingFilter({
     elements,
     inlineObjects
-}) => {
+}: {
+    elements: ParsedParagraphs;
+    inlineObjects: {
+        [key: string]: docs_v1.Schema$InlineObject;
+    };
+}): GdrDocument {
     return elements.map((elem) => {
         if (elem.type === "ORDERED_LIST" || elem.type === "UNORDERED_LIST") {
             const _elem = elem as ParsedListElement;
-            const listChildren: ParagraphElement[] = _elem.elements.map(
-                (item) => {
-                    const _elements = item.element.elements;
-                    let children: TextElement[] = [];
-                    if (_elements) {
-                        const mapped = _elements.map((e) => {
-                            const textElement: TextElement =
-                                modifiedTextElement(e, inlineObjects);
-                            return textElement;
-                        });
-                        const filtered = mapped.filter(Boolean as any);
-                        children = filtered;
-                    }
-                    return {
-                        type: item.type,
-                        id: item.id,
-                        children: children
-                    };
+            const _children = _elem.elements as ParsedParagraphElement[];
+            const listChildren: ParagraphElement[] = _children.map((item) => {
+                const _elements = item.element.elements;
+                let children: TextElement[] = [];
+                if (_elements) {
+                    const mapped = _elements.map((e) => {
+                        const textElement: TextElement = modifiedTextElement(
+                            e,
+                            inlineObjects
+                        );
+                        return textElement;
+                    });
+                    const filtered = mapped.filter(Boolean as any);
+                    children = filtered;
                 }
-            );
+                return {
+                    type: item.type,
+                    id: item.id,
+                    children: children
+                };
+            });
             return {
                 type: _elem.type,
                 id: _elem.id,
@@ -237,4 +243,4 @@ export const objectMappingFilter: ObjectMappingFilter = ({
             };
         }
     });
-};
+}
